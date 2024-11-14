@@ -1,3 +1,4 @@
+import logging
 import requests
 
 class PolytopeRequestHandler:
@@ -7,6 +8,8 @@ class PolytopeRequestHandler:
         self.collection = collection
 
     def get(self, request):
+        logging.getLogger("polytope.api").setLevel(logging.CRITICAL)
+
         pointer = self.client.retrieve(self.collection, request, pointer=True)
         data_url = pointer[0]["location"]
         request_id = data_url.split("/")[-1].split(".")[0]

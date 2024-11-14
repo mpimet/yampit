@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "aiohttp>=3.11.0",
+    "eccodes>=2.38.3",
     "polytope-client>=0.7.4",
 ]
 
@@ -18,5 +18,9 @@ build-backend = "hatchling.build"
 
 [tool.uv]
 dev-dependencies = [
+    "healpy>=1.18.0",
     "ipython>=8.29.0",
+    "matplotlib>=3.9.2",
+    "xarray>=2024.10.0",
+    "zarr>=2.18.3",
 ]

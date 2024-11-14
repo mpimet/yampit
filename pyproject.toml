@@ -7,7 +7,7 @@ authors = [
     { name = "Tobias Kölling", email = "tobias.koelling@mpimet.mpg.de" },
     { name = "Lukas Kluft", email = "lukas.kluft@mpimet.mpg.de" },
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "eccodes>=2.38.3",
     "polytope-client>=0.7.4",

@@ -1,0 +1,14 @@
+[project]
+name = "yampit"
+version = "0.1.0"
+description = "Builds datasets, jumps through FDBs."
+readme = "README.md"
+authors = [
+    { name = "Tobias Kölling", email = "tobias.koelling@mpimet.mpg.de" },
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

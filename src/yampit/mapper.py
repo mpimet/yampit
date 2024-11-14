@@ -23,7 +23,7 @@ class Mapper:
                 **{f"{name}/.zarray": {
                         "chunks": [len(var)],
                         "compressor": None,
-                        "dtype": var.dtype.descr[0][1],
+                        "dtype": "i4" if name == "time" else var.dtype.descr[0][1],
                         "fill_value": None,
                         "filters": [],
                         "order": "C",
@@ -34,6 +34,7 @@ class Mapper:
                 },
                 **{f"{name}/.zattrs": {
                         "_ARRAY_DIMENSIONS": [name],
+                        "units": f"seconds since {self.coords[name][0]}" if name == "time" else None,
                     }
                     for name, var in self.coords.items()
                 },
@@ -59,7 +60,10 @@ class Mapper:
         }).encode("utf-8")
 
     def coord(self, name):
-        return bytes(self.coords[name])
+        if name == "time":
+            return bytes((self.coords[name] - self.coords[name][0]).astype("timedelta64[s]").astype(np.int32))
+        else:
+            return bytes(self.coords[name])
 
     @lru_cache
     def __getitem__(self, key):
@@ -73,12 +77,25 @@ class Mapper:
 
         if var in self.coords:
             return self.coord(var)
+
+        def _encode_mars_request(dim, c):
+            if dim == "time":
+                date_str = np.datetime_as_string(c, "m")
+                date, time = date_str.replace("-", "").replace(":", "").split("T")
+
+                return {"date": date, "time": time}
+            else:
+                return {dim: str(c)}
+
         request = {
             **self.base_request,
             "param": var,
-            **{dim: str(self.coords[dim][idx])
-               for dim, idx in zip(self.variables[var]["dims"], chunk)
-               if dim not in self.internal_dims}
+            **{
+                k: v
+                for dim, idx in zip(self.variables[var]["dims"], chunk)
+                if dim not in self.internal_dims
+                for k, v in _encode_mars_request(dim, self.coords[dim][idx]).items()
+            }
         }
 
         data = self.request_handler.get(request)

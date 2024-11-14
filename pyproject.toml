@@ -1,6 +1,6 @@
 [project]
 name = "yampit"
-version = "0.2.0"
+version = "0.3.0"
 description = "Builds datasets, jumps through FDBs."
 readme = "README.md"
 authors = [

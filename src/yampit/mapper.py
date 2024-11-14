@@ -63,7 +63,6 @@ class Mapper:
 
     @lru_cache
     def __getitem__(self, key):
-        print(key)
         if key == ".zmetadata":
             return self.zmetadata()
         try:
@@ -82,8 +81,6 @@ class Mapper:
                if dim not in self.internal_dims}
         }
 
-        print(request)
-        
         data = self.request_handler.get(request)
         mid = eccodes.codes_new_from_message(data)
         data = eccodes.codes_get_array(mid, "values")

@@ -1,0 +1,21 @@
+on:
+  release:
+    types: [created]
+  push:
+  pull_request:
+
+jobs:
+  pypi-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: build release distributions
+        run: uv build
+      - name: Publish release distributions to PyPI
+        if: "${{ github.event_name == 'release' }}"
+        uses: pypa/gh-action-pypi-publish@release/v1

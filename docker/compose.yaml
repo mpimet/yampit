@@ -1,0 +1,12 @@
+services:
+  backend:
+    build:
+      context: ../
+      dockerfile: docker/yampit/Dockerfile
+    env_file: "./polytope.env"
+  cache:
+    build: varnish
+    environment:
+      VARNISH_SIZE: 5G
+    ports:
+      - "2080:80"

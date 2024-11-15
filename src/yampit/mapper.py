@@ -4,9 +4,8 @@ from functools import lru_cache
 
 import eccodes
 
-class Mapper:
-    def __init__(self, request_handler, base_request, coords, variables, internal_dims):
-        self.request_handler = request_handler
+class MarsDataset:
+    def __init__(self, base_request, coords, variables, internal_dims):
         self.base_request = base_request
         self.coords = {k: np.asarray(v) for k, v in coords.items()}
         self.variables = variables
@@ -65,18 +64,15 @@ class Mapper:
         else:
             return bytes(self.coords[name])
 
-    @lru_cache
-    def __getitem__(self, key):
+    def key2request(self, key):
         if key == ".zmetadata":
-            return self.zmetadata()
-        try:
-            var, chunk = key.split("/")
-            chunk = list(map(int, chunk.split(".")))
-        except KeyError:
-            raise KeyError()
+            return 'inline', self.zmetadata()
+
+        var, chunk = key.split("/")
+        chunk = list(map(int, chunk.split(".")))
 
         if var in self.coords:
-            return self.coord(var)
+            return 'inline', self.coord(var)
 
         def _encode_mars_request(dim, c):
             if dim == "time":
@@ -87,7 +83,7 @@ class Mapper:
             else:
                 return {dim: str(c)}
 
-        request = {
+        return 'request', {
             **self.base_request,
             "param": var,
             **{
@@ -98,11 +94,28 @@ class Mapper:
             }
         }
 
-        data = self.request_handler.get(request)
-        mid = eccodes.codes_new_from_message(data)
-        data = eccodes.codes_get_array(mid, "values")
-        eccodes.codes_release(mid)
-        return bytes(data.astype("<f4"))
+
+class Mapper:
+    def __init__(self, request_handler, *args, **kwargs):
+        self.request_handler = request_handler
+        self._mds = MarsDataset(*args, **kwargs)
+        self.logger = logging.getLogger(__name__)
+
+    @lru_cache
+    def __getitem__(self, key):
+        kind, request = self._mds.key2request(key)
+
+        if kind == 'inline':
+            return request
+        elif kind == 'request':
+            self.logger.debug("requesting %s for %s", request, key)
+            data = self.request_handler.get(request)
+            mid = eccodes.codes_new_from_message(data)
+            data = eccodes.codes_get_array(mid, "values")
+            eccodes.codes_release(mid)
+            return bytes(data.astype("<f4"))
+        else:
+            raise NotImplementedError(f"kind {kind}")
 
     def __contains__(self, key):
         try:

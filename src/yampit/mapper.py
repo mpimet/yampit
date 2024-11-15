@@ -11,8 +11,9 @@ class MarsDataset:
         self.variables = variables
         self.internal_dims = internal_dims
         
+    @lru_cache
     def zmetadata(self):
-        return json.dumps({
+        return {
             "zarr_consolidated_format": 1,
             "metadata": {
                 ".zattrs": {},
@@ -56,7 +57,7 @@ class MarsDataset:
                     for name, info in self.variables.items()
                 },
             }
-        }).encode("utf-8")
+        }
 
     def coord(self, name):
         if name == "time":
@@ -66,9 +67,13 @@ class MarsDataset:
 
     def key2request(self, key):
         if key == ".zmetadata":
-            return 'inline', self.zmetadata()
+            return 'inline', json.dumps(self.zmetadata()).encode("utf-8")
 
-        var, chunk = key.split("/")
+        key_parts = key.split("/")
+        if key_parts[-1].startswith(".z"):
+            return 'inline', json.dumps(self.zmetadata()["metadata"][key]).encode("utf-8")
+
+        var, chunk = key_parts
         chunk = list(map(int, chunk.split(".")))
 
         if var in self.coords:

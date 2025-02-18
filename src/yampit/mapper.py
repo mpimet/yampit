@@ -90,7 +90,7 @@ class MarsDataset:
 
         return 'request', {
             **self.base_request,
-            "param": var,
+            "param": self.variables[var].get("id", var),
             **{
                 k: v
                 for dim, idx in zip(self.variables[var]["dims"], chunk)

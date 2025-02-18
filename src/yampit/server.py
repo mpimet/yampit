@@ -1,4 +1,4 @@
-from sanic import Sanic
+from sanic import Sanic, exceptions
 from sanic.response import raw
 
 import eccodes
@@ -6,6 +6,7 @@ import eccodes
 from .catalog import demo
 from .mapper import MarsDataset
 from .async_polytope_request_handler import AsyncPolytopeRequestHandler
+from .exceptions import NoSuchData
 
 app = Sanic("YAMPIT_Server")
 
@@ -32,7 +33,10 @@ async def get_chunk(request, key):
     if kind == 'inline':
         return raw(request, content_type=content_type, headers=headers)
     elif kind == 'request':
-        data = await app.ctx.request_handler.get(request)
+        try:
+            data = await app.ctx.request_handler.get(request)
+        except NoSuchData:
+            raise exceptions.NotFound("Could not find data for MARS request " + str(request))
 
         mid = eccodes.codes_new_from_message(data)
         data = eccodes.codes_get_array(mid, "values")

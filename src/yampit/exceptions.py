@@ -1,0 +1,2 @@
+class NoSuchData(ValueError):
+    pass

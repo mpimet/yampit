@@ -1,24 +1,28 @@
 from sanic import Sanic, exceptions
-from sanic.response import raw
+from sanic.response import raw, json
 
 import eccodes
 
-from .catalog import demo
+from .catalog import read_destine_catalog
 from .mapper import MarsDataset
 from .async_polytope_request_handler import AsyncPolytopeRequestHandler
 from .exceptions import NoSuchData
 
 app = Sanic("YAMPIT_Server")
 
-app.ctx.dataset = MarsDataset(**demo)
+app.ctx.datasets = {k: MarsDataset(**v) for k, v in read_destine_catalog().items()}
 app.ctx.request_handler = AsyncPolytopeRequestHandler("polytope.lumi.apps.dte.destination-earth.eu", "destination-earth")
 
 def is_meta(key):
     return key.split("/")[-1].startswith(".z")
 
-@app.get("/ds/<key:path>")
-async def get_chunk(request, key):
-    kind, request = app.ctx.dataset.key2request(key)
+@app.get("/ds")
+async def list_datasets(request):
+    return json(list(sorted(app.ctx.datasets)))
+
+@app.get("/ds/<dsid>/<key:path>")
+async def get_chunk(request, dsid, key):
+    kind, request = app.ctx.datasets[dsid].key2request(key)
 
     if is_meta(key):
         content_type="application/json"

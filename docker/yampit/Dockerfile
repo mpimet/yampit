@@ -1,7 +1,7 @@
 FROM python:3.12-slim-bookworm
 RUN apt update && apt install -y git cmake gcc g++ gfortran
 
-ARG eccodes_version=2.38.3
+ARG eccodes_version=2.41.0
 RUN mkdir -p /src
 WORKDIR /src
 #RUN git clone https://github.com/ecmwf/ecbuild --depth 1 -b $ecbuild_version

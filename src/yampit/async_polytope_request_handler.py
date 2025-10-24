@@ -83,5 +83,5 @@ class AsyncPolytopeRequestHandler:
             async with session.delete(poll_url, headers=self.auth_headers) as r:
                 if not r.ok:
                     logger = logging.getLogger(__name__)
-                    logger.warn("couldn't DELETE %s: %s %s", revoke_url, r.status_code, r.reason)
+                    logger.warn("couldn't DELETE %s: %s %s", poll_url, r.status, r.reason)
         return res

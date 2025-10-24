@@ -3,6 +3,7 @@ import logging
 from urllib.parse import urljoin
 import aiohttp
 import asyncio
+from .exceptions import NoSuchData
 
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,6 @@ class AsyncPolytopeRequestHandler:
 
         for i in range(self.max_poll_retries):
             async with session.get(url, headers=self.auth_headers) as r:
-                r.raise_for_status()
                 match r.status:
                     case 200:  # OK, direct download
                         return await r.read()
@@ -51,6 +51,9 @@ class AsyncPolytopeRequestHandler:
                         continue
                     case 303:  # redirect to direct download
                         raise NotImplementedError("direct download")
+                    case 400:
+                        raise NoSuchData("request can't be fullfilled")
+                r.raise_for_status()
         else:
             raise RuntimeError("max poll retries exceeded")
 
@@ -62,7 +65,6 @@ class AsyncPolytopeRequestHandler:
 
         session = await self.set_session()
         async with session.post(url, headers=self.auth_headers, json=request_object) as r:
-            r.raise_for_status()
             match r.status:
                 case 200:  # OK, direct download
                     res = await r.read()
@@ -73,6 +75,9 @@ class AsyncPolytopeRequestHandler:
                     res = await self._poll_get(poll_url)
                 case 303:  # redirect to direct download
                     raise NotImplementedError("direct download")
+                case 400:
+                    raise NoSuchData("request can't be fullfilled")
+            r.raise_for_status()
 
         if poll_url:
             async with session.delete(poll_url, headers=self.auth_headers) as r:

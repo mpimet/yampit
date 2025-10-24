@@ -24,4 +24,6 @@ class PolytopeRequestHandler:
 
         finally:
             r = requests.delete(revoke_url, headers=headers)
-            r.raise_for_status()
+            if not r.ok:
+                logger = logging.getLogger(__name__)
+                logger.warn("couldn't DELETE %s: %s %s", revoke_url, r.status_code, r.reason)

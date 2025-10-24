@@ -1,7 +1,12 @@
 import json
+import logging
 from urllib.parse import urljoin
 import aiohttp
 import asyncio
+
+
+logger = logging.getLogger(__name__)
+
 
 async def get_client(**kwargs):
     return aiohttp.ClientSession(**kwargs)
@@ -71,5 +76,7 @@ class AsyncPolytopeRequestHandler:
 
         if poll_url:
             async with session.delete(poll_url, headers=self.auth_headers) as r:
-                r.raise_for_status()
+                if not r.ok:
+                    logger = logging.getLogger(__name__)
+                    logger.warn("couldn't DELETE %s: %s %s", revoke_url, r.status_code, r.reason)
         return res

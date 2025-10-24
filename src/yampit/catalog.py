@@ -114,5 +114,37 @@ def read_destine_catalog():
     return {name: config
             for name, config in _read_destine_catalog(root)}
 
+def read_dmi_catalog():
+    def format_param(varid):
+        return {get_param_info(varid)["shortname"]: {"dims": ("time", "x", "y"), **param_info_to_var_metadata(get_param_info(varid))}}
+
+    return {
+        "deode_on_duty": {
+            "base_request": {
+                'class': 'd1',
+                'dataset': 'on-demand-extremes-dt',
+                'time': '0000',
+                'expver': '0099',
+                'date': '20241119',
+                'levtype': 'sfc',
+                'georef': 'ud3q9t',
+                'stream': 'oper',
+                'type': 'fc',
+            },
+            "coords":{
+                "time": xr.date_range("2024-11-19", "2024-11-21", freq="h"),
+                "x": range(1489),
+                "y": range(1489),
+            },
+            "variables": {
+                k: v
+                for i in [167, 3073, 3074, 174096]
+                for k, v in format_param(i).items()
+            },
+            "internal_dims": ["x", "y"],
+        }
+    }
+
+
 if __name__ == "__main__":
     print(read_destine_catalog())

@@ -3,14 +3,15 @@ from sanic.response import raw, json
 
 import eccodes
 
-from .catalog import read_destine_catalog
+from .catalog import read_destine_catalog, read_dmi_catalog
 from .mapper import MarsDataset
 from .async_polytope_request_handler import AsyncPolytopeRequestHandler
 from .exceptions import NoSuchData
 
 app = Sanic("YAMPIT_Server")
 
-app.ctx.datasets = {k: MarsDataset(**v) for k, v in read_destine_catalog().items()}
+#app.ctx.datasets = {k: MarsDataset(**v) for k, v in read_destine_catalog().items()}
+app.ctx.datasets = {k: MarsDataset(**v) for k, v in read_dmi_catalog().items()}
 app.ctx.request_handler = AsyncPolytopeRequestHandler("polytope.lumi.apps.dte.destination-earth.eu", "destination-earth")
 
 def is_meta(key):

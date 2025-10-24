@@ -54,6 +54,7 @@ class MarsDataset:
                 },
                 **{f"{name}/.zattrs": {
                         "_ARRAY_DIMENSIONS": list(info["dims"]),
+                        **info.get("attrs", {}),
                     }
                     for name, info in self.variables.items()
                 },
